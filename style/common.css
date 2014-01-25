@@ -22,6 +22,16 @@ progress.pack-activity {
     left: 0;
     z-index: 1000;
 }
+section[role="region"]:target {
+    transform: translateX(80%);
+}
+/* Hide anchor to change target */
+section[role="region"] > header:first-child > a:last-of-type {
+    visibility: visible;
+}
+section[role="region"]:target > header:first-child > a:last-of-type {
+    visibility: hidden;
+}
 section[role="region"] header h2 {
     padding: 0;
     border-bottom: none;
@@ -74,10 +84,6 @@ section[role="region"] > header:first-child menu[type="toolbar"] {
     z-index: 100;
 }
 
-.cards {
-    position: relative; overflow: hidden; min-height: 100%;
-}
-
 .card {
     position: absolute;
     overflow: hidden;
@@ -86,9 +92,9 @@ section[role="region"] > header:first-child menu[type="toolbar"] {
     width: 100%;
     height: 100%;
     transform: translate(0, 0);
-    transition: transform 0.5s ease;
-    -moz-transition: all 0.5s ease;
-    -webkit-transition: all 0.5s ease;
+    transition: all 0.4s ease;
+    -moz-transition: all 0.4s ease;
+    -webkit-transition: all 0.4s ease;
 }
 
 .card:not(.card-noscroll) {
@@ -411,6 +417,7 @@ section[role="region"] > header:first-child menu[type="toolbar"] {
     background: #3b3b3b url(../shared/style_unstable/drawer/images/ui/pattern.png);
     color: #fff;
     box-shadow: -0.5rem 0 0.5rem 0 rgba(0, 0, 0, .3) inset;
+    width: 80%;
 }
     #notebooks h2 {
         position: relative;
