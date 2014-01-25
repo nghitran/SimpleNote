@@ -14,6 +14,7 @@ body {
     height: 100%;
     margin: 0 auto;
     background: #fff;
+    overflow: hidden;
 }
 progress.pack-activity {
     position: fixed;
@@ -73,6 +74,40 @@ section[role="region"] > header:first-child menu[type="toolbar"] {
     z-index: 100;
 }
 
+.cards {
+    position: relative; overflow: hidden; min-height: 100%;
+}
+
+.card {
+    position: absolute;
+    overflow: hidden;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    transform: translate(0, 0);
+    transition: transform 0.5s ease;
+    -moz-transition: all 0.5s ease;
+    -webkit-transition: all 0.5s ease;
+}
+
+.card:not(.card-noscroll) {
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+.card:not(.drawer) {
+    background: none repeat scroll 0% 0% rgb(255, 255, 255);
+}
+
+.card-right {
+    transform: translateX(100%);
+}
+
+.card-bottom {
+    transform: translateY(100%);
+}
+
 .card .footer {
     position: absolute;
     bottom: 0;
@@ -118,6 +153,10 @@ section[role="region"] > header:first-child menu[type="toolbar"] {
     padding-bottom: 4rem;
     z-index: 5;
     overflow-y: auto;
+}
+
+.card.card-noscroll > .content {
+    width: calc(100% + 0.8rem);
 }
 
 .notebook-notes {
@@ -477,12 +516,13 @@ section[role="region"] > header:first-child menu[type="toolbar"] {
                 display: inline-block;
                 text-align: left;
                 width: 10rem;
+                line-height: 4.2rem;
             }
                 #note-info .fields li label:before {
                     content: "";
                     position: absolute;
-                    top: 0.5rem;
-                    bottom: 0.5rem;
+                    top: 0;
+                    bottom: 0;
                     right: -0.1rem;
                     width: 0.1rem;
                     background: #c4c4c5;
@@ -490,8 +530,8 @@ section[role="region"] > header:first-child menu[type="toolbar"] {
                 #note-info .fields li label:after {
                     content: "";
                     position: absolute;
-                    top: 0.5rem;
-                    bottom: 0.5rem;
+                    top: 0;
+                    bottom: 0;
                     right: -0.2rem;
                     width: 0.1rem;
                     background: #fdfdfd;
@@ -499,12 +539,15 @@ section[role="region"] > header:first-child menu[type="toolbar"] {
 
             #note-info .fields li .value {
                 position: relative;
+                line-height: 4.2rem;
             }
             #note-info .fields li select {
                 font-size: 1.5rem;
                 font-weight: bold;
                 background: transparent;
                 border-width: 0;
+                text-align: center;
+                margin-top: 1.1rem;
             }
 
 

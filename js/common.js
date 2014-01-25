@@ -263,9 +263,10 @@ var App = new function() {
         }
     };
     
-    this.showNotes = function(notebook) {
+    this.showNotes = function(notebook, refresh) {
         NotebookView.show(notebook);
-        cards.goTo(cards.CARDS.MAIN);
+        if(!refresh)
+            cards.goTo(cards.CARDS.MAIN);
         
         if (NotebookView.getCurrent()) {
             elButtonNewNote.style.display = "";
@@ -340,8 +341,9 @@ var App = new function() {
     }
     
     function onNoteSave(noteAffected) {
-        self.showNotes();
+        self.showNotes(null, true);
         NotebooksList.refresh();
+        cards.back();
     }
     
     function onNoteCancel(noteAffected, isChanged) {
@@ -661,6 +663,7 @@ var App = new function() {
                 "title": name,
                 "text": content
             }, function onSuccess(){
+                Console.error("Save successfully");
                 onSave && onSave(currentNote);
             }, function onError(){
                 Console.error("Error saving note!");
@@ -1016,7 +1019,7 @@ var App = new function() {
         };
         
         this.printNotes = function(notes, trashed) {
-            console.log('trashed: '+trashed);
+            //console.log('trashed: '+trashed);
             $notesList.innerHTML = '';
             
             notes = sortNotes(notes, currentSort, currentIsDesc);
