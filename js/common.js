@@ -50,6 +50,14 @@ var App = new function() {
             "onResourceClick": onResourceClick,
             "NoteActionsPhotoLabel": TEXTS.PHOTO_LABEL
         });
+        // handler of the note card (view and edit actual note)
+        NoteForm.init({
+            "container": $("note-form"),
+            "elCancel": $("note-form-cancel"),
+            "elSave": $("note-form-save"),
+            "onSave": onNoteSave,
+            "onCancel": onNoteCancel
+        });
         // handler of the note-info card
         NoteInfoView.init({
             "container": $("note-info"),
@@ -240,7 +248,7 @@ var App = new function() {
         }, function onSuccess(note){
             self.showNote(note, notebook);
             
-            NoteView.focus();
+            NoteForm.focus();
             
             cb && cb(note);
         });
@@ -258,8 +266,8 @@ var App = new function() {
                 self.showNote(notes[0], notebook);
             });
         } else {
-            NoteView.show(note, notebook);
-            cards.goTo(cards.CARDS.NOTE);
+            NoteForm.show(note, notebook);
+            cards.goTo(cards.CARDS.NOTE_FORM, "popup");
         }
     };
     
@@ -819,6 +827,177 @@ var App = new function() {
                     }
                     break;
             }
+        }
+    };
+
+    // TODO: resize the textarea
+
+    var NoteForm = new function() {
+        var self = this,
+            currentNote = null, currentNotebook = null,
+            noteContentBeforeEdit = "", noteNameBeforeEdit = "",
+            el = null, elContent = null, elSave = null, elCancel = null, elTitle = null, elEditTitle = null,
+            onSave = null, onCancel = null, onTitleChange = null,
+
+            CLASS_EDIT_TITLE = "edit-title",
+            CLASS_WHEN_VISIBLE = "visible",
+            CLASS_WHEN_HAS_IMAGES = "has-images";
+
+        this.init = function(options) {
+            el = options.container;
+            elSave = options.elSave;
+            elCancel = options.elCancel;
+
+            onSave = options.onSave;
+            onCancel = options.onCancel;
+            onTitleChange = options.onTitleChange;
+            onResourceClick = options.onResourceClick;
+
+            elContent = el.querySelector("textarea");
+            elTitle = el.querySelector("h1");
+            elEditTitle = el.querySelector("input");
+
+            elTitle.addEventListener("click", self.editTitle);
+            elEditTitle.addEventListener("blur", self.saveEditTitle);
+            elEditTitle.addEventListener("keyup", function(e){
+                (e.keyCode == 13) && self.saveEditTitle();
+            });
+
+            elContent.addEventListener("focus", onContentFocus);
+            elContent.addEventListener("blur", onContentBlur);
+            elContent.addEventListener("keyup", onContentKeyUp);
+
+            elSave.addEventListener("click", self.save);
+            elCancel.addEventListener("click", self.cancel);
+        };
+
+        this.show = function(note, notebook) {
+            var noteContent = note.getContent(),
+                noteName = note.getName();
+
+            noteContentBeforeEdit = noteContent;
+            noteNameBeforeEdit = noteName;
+
+            elContent.value = noteContent;
+            self.setTitle(noteName);
+
+            onContentKeyUp();
+            onContentBlur();
+
+            currentNote = note;
+            currentNotebook = notebook;
+        };
+
+        this.getCurrentNote = function() { return currentNote; };
+        this.getCurrentNotebook = function() { return currentNotebook; };
+
+        this.setTitle = function(title) {
+            html(elTitle, title || getNoteNameFromContent(elContent.value) || TEXTS.NEW_NOTE);
+            elEditTitle.value = title || "";
+        };
+
+        this.editTitle = function() {
+            if (!currentNote || currentNote.isTrashed()) return;
+
+            el.classList.add(CLASS_EDIT_TITLE);
+            elEditTitle.focus();
+        };
+
+        this.saveEditTitle = function() {
+            el.classList.remove(CLASS_EDIT_TITLE);
+            elEditTitle.blur();
+
+            self.setTitle(elEditTitle.value);
+
+            onTitleChange && onTitleChange();
+        };
+
+        this.save = function() {
+            var content = elContent.value,
+                name = elEditTitle.value;
+
+            currentNote.set({
+                "title": name,
+                "text": content
+            }, function onSuccess(){
+                Console.error("Save successfully");
+                onSave && onSave(currentNote);
+            }, function onError(){
+                Console.error("Error saving note!");
+            });
+        };
+
+        this.cancel = function() {
+            onCancel && onCancel(currentNote, self.changed());
+        };
+
+        this.focus = function() {
+            elContent.focus();
+            self.scrollToElement(NUMBER_OF_SCROLL_RETRIES);
+        };
+
+        this.scrollToElement = function(numberOfTries) {
+            var top = elContent.getBoundingClientRect().top;
+
+            window.scrollTo(0, top);
+            if (numberOfTries > 0 && document.body.scrollTop < top) {
+                window.setTimeout(function(){
+                    self.scrollToElement(numberOfTries-1);
+                }, 80);
+            }
+        };
+
+        this.changed = function() {
+            return noteContentBeforeEdit !== elContent.value || noteNameBeforeEdit !== elEditTitle.value;
+        };
+
+        function onContentKeyUp(e) {
+            if (elContent.value) {
+                elSave.classList.add(CLASS_WHEN_VISIBLE);
+                !elEditTitle.value && (html(elTitle, getNoteNameFromContent(elContent.value)));
+            } else {
+                elSave.classList.remove(CLASS_WHEN_VISIBLE);
+                self.setTitle();
+            }
+        }
+
+        function onContentFocus(e) {
+            el.classList.remove(EMPTY_CONTENT_CLASS);
+
+            window.scrollTo(0, 1);
+
+            setHeightAccordingToScreen();
+        }
+
+        function onContentBlur(e) {
+            if (elContent.value) {
+                el.classList.remove(EMPTY_CONTENT_CLASS);
+            } else {
+                el.classList.add(EMPTY_CONTENT_CLASS);
+            }
+
+            resetHeight();
+        }
+
+        function setHeightAccordingToScreen() {
+            var tries = 30,
+                initialHeight = window.innerHeight,
+                intervalHeight = window.setInterval(function(){
+
+                    if (window.innerHeight < initialHeight) {
+                        elContent.style.height = elContent.style.minHeight = (window.innerHeight-elTitle.offsetHeight) + "px";
+                        window.scrollTo(0, 1);
+                    }
+
+                    if (tries == 0 || window.innerHeight < initialHeight) {
+                        window.clearInterval(intervalHeight);
+                    }
+                    tries--;
+                }, 100);
+        }
+
+        function resetHeight() {
+            elContent.style.height = elContent.style.minHeight = "";
         }
     };
     

@@ -55,6 +55,8 @@
                 </div>
             </section>
 
+            <!-- Note View Section -->
+
             <section class="card card-right" id="note" role="region">
                 <header>
                     <button id="button-note-cancel" class="card-prev"><span class="icon icon-close">close</span></button>
@@ -91,6 +93,36 @@
                     </div>
                 </div>
             </section>
+
+            <!-- Note Edit Section -->
+
+            <section class="card card-bottom" id="note-form" role="region">
+                <header>
+                    <button id="note-form-cancel" class="card-prev"><span class="icon icon-close">close</span></button>
+                    <menu type="toolbar">
+                        <button id="note-form-save" data-l10n-id="done">Done</button>
+                    </menu>
+                    <h1></h1>
+                    <input type="text" value="" id="note-edit-name" name="edit-note-name" />
+                </header>
+                <!--
+                <ul id="note-edit-actions">
+                    <li class="sprited type">Type</li>
+                    <li class="sprited photo">Attach Photo</li>
+                    <li class="sprited info">Settings</li>
+                    <li class="sprited share">Share</li>
+                    <li class="sprited delete">Delete</li>
+                </ul>
+                -->
+                <div class="content">
+                    <textarea id="note-form-content"></textarea>
+                    <div class="empty sprited">
+                        <p data-l10n-id="tap-anywhere-to-start">tap anywhere to start</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Note's Information Section -->
 
             <section class="card card-right" id="note-info" role="region">
                 <header>
