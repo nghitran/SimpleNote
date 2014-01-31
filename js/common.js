@@ -246,7 +246,7 @@ var App = new function() {
         notebook.newNote({
             "notebookId": notebook.getId()
         }, function onSuccess(note){
-            self.showNote(note, notebook);
+            self.editNote(note, notebook);
             
             NoteForm.focus();
             
@@ -261,6 +261,17 @@ var App = new function() {
     };
     
     this.showNote = function showNote(note, notebook) {
+        if (typeof note === "string") {
+            DB.getNotes({"id": note}, function(notes) {
+                self.showNote(notes[0], notebook);
+            });
+        } else {
+            NoteView.show(note, notebook);
+            cards.goTo(cards.CARDS.NOTE);
+        }
+    };
+    
+    this.editNote = function editNote(note, notebook) {
         if (typeof note === "string") {
             DB.getNotes({"id": note}, function(notes) {
                 self.showNote(notes[0], notebook);
@@ -565,7 +576,7 @@ var App = new function() {
             onTitleChange = options.onTitleChange;
             onResourceClick = options.onResourceClick;
             
-            elContent = el.querySelector("textarea");
+            elContent = el.querySelector("#note-content");
             elResources = el.querySelector("#note-resources");
             elTitle = el.querySelector("h1");
             elEditTitle = el.querySelector("input");
@@ -573,15 +584,11 @@ var App = new function() {
             elRestore = el.querySelector("#button-note-restore");
             elDelete = el.querySelector("#button-note-delete");
             
-            elTitle.addEventListener("click", self.editTitle);
-            elEditTitle.addEventListener("blur", self.saveEditTitle);
-            elEditTitle.addEventListener("keyup", function(e){
-                (e.keyCode == 13) && self.saveEditTitle();
-            });
-            
-            elContent.addEventListener("focus", onContentFocus);
-            elContent.addEventListener("blur", onContentBlur);
-            elContent.addEventListener("keyup", onContentKeyUp);
+            //elTitle.addEventListener("click", self.editTitle);
+            //elEditTitle.addEventListener("blur", self.saveEditTitle);
+            //elEditTitle.addEventListener("keyup", function(e){
+            //   (e.keyCode == 13) && self.saveEditTitle();
+            //});
             
             elSave.addEventListener("click", self.save);
             elCancel.addEventListener("click", self.cancel);
@@ -604,7 +611,7 @@ var App = new function() {
             noteContentBeforeEdit = noteContent;
             noteNameBeforeEdit = noteName;
             
-            elContent.value = noteContent;
+            elContent.innerHTML = noteContent;
             self.setTitle(noteName);
             self.loadResources(note);
             
@@ -613,9 +620,6 @@ var App = new function() {
             } else {
                 el.classList.remove(CLASS_WHEN_TRASHED);
             }
-            
-            onContentKeyUp();
-            onContentBlur();
             
             currentNote = note;
             currentNotebook = notebook;
@@ -643,7 +647,7 @@ var App = new function() {
         this.getCurrentNotebook = function() { return currentNotebook; };
         
         this.setTitle = function(title) {
-            html(elTitle, title || getNoteNameFromContent(elContent.value) || TEXTS.NEW_NOTE);
+            html(elTitle, title || getNoteNameFromContent(elContent.innerHTML) || TEXTS.NEW_NOTE);
             elEditTitle.value = title || "";
         };
         
@@ -717,36 +721,8 @@ var App = new function() {
         };
         
         this.changed = function() {
-            return noteContentBeforeEdit !== elContent.value || noteNameBeforeEdit !== elEditTitle.value;
+            return noteContentBeforeEdit !== elContent.innerHTML || noteNameBeforeEdit !== elEditTitle.value;
         };
-        
-        function onContentKeyUp(e) {
-            if (elContent.value) {
-                elSave.classList.add(CLASS_WHEN_VISIBLE);
-                !elEditTitle.value && (html(elTitle, getNoteNameFromContent(elContent.value)));
-            } else {
-                elSave.classList.remove(CLASS_WHEN_VISIBLE);
-                self.setTitle();
-            }
-        }
-
-        function onContentFocus(e) {
-            el.classList.remove(EMPTY_CONTENT_CLASS);
-            
-            window.scrollTo(0, 1);
-            
-            setHeightAccordingToScreen();
-        }
-        
-        function onContentBlur(e) {
-            if (elContent.value) {
-                el.classList.remove(EMPTY_CONTENT_CLASS);
-            } else {
-                el.classList.add(EMPTY_CONTENT_CLASS);
-            }
-            
-            resetHeight();
-        }
         
         function setHeightAccordingToScreen() {
             var tries = 30,
@@ -830,7 +806,7 @@ var App = new function() {
         }
     };
 
-    // TODO: resize the textarea
+    // TODO: add more edit actions
 
     var NoteForm = new function() {
         var self = this,
