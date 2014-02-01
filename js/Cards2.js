@@ -51,6 +51,12 @@ var Cards = function(_options) {
         current.classList.add(transitions[transition] || transition);
         _currentView = nextView.view;
     };
+    
+    this.home = function home() {
+        while (stack.length > 1) {
+            this.back();
+        }
+    }
 
     this.currentView = function currentView() {
         return _currentView != null ? _currentView : '';

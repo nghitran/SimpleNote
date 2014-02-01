@@ -282,10 +282,11 @@ var App = new function() {
         }
     };
     
-    this.showNotes = function(notebook, refresh) {
+    this.showNotes = function(notebook) {
         NotebookView.show(notebook);
-        if(!refresh)
-            cards.goTo(cards.CARDS.MAIN);
+        /*if(!refresh)
+            cards.goTo(cards.CARDS.MAIN);*/
+        cards.home();
         
         if (NotebookView.getCurrent()) {
             elButtonNewNote.style.display = "";
@@ -309,7 +310,7 @@ var App = new function() {
         elButtonNewNote.style.display = "none";
         NotebookView.setTitle(TEXTS.NOTEBOOK_ALL);
         
-        cards.goTo(cards.CARDS.MAIN);
+        cards.home();
     };
     
     this.showTrashedNotes = function() {
@@ -318,7 +319,7 @@ var App = new function() {
         elButtonNewNote.style.display = "none";
         NotebookView.setTitle(TEXTS.NOTEBOOK_TRASH);
         
-        cards.goTo(cards.CARDS.MAIN);
+        cards.home();
     };
     
     function onCardMove() {
@@ -360,7 +361,7 @@ var App = new function() {
     }
     
     function onNoteSave(noteAffected) {
-        self.showNotes(null, true);
+        self.showNotes(null);
         NotebooksList.refresh();
         cards.back();
     }
@@ -396,6 +397,7 @@ var App = new function() {
     }
     
     function onNoteDelete(noteAffected) {
+        //console.log("note deleted");
         self.showTrashedNotes();
         NotebooksList.refresh();
     }
@@ -695,6 +697,7 @@ var App = new function() {
         };
         
         this.del = function() {
+            console.log("delete note");
             if (confirm(TEXTS.CONFIRM_DELETE_NOTE)) {
                 currentNote.remove(function onSuccess(){
                     onDelete && onDelete(currentNote);
