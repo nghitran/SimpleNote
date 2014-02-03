@@ -52,8 +52,25 @@ section[role="region"] > header:first-child h2 {
     height: 100%;
     font-weight: normal;
 }
+section[role="region"] > header:first-child h1 {
+    padding: 0rem 1rem;
+}
 section[role="region"] > header:first-child > button, section[role="region"] > header:first-child > a {
-    width: 2.5rem;
+    width: 3.3rem;
+    background: url("../shared/style/headers/images/ui/separator.png") no-repeat scroll right center / auto 4.8rem transparent;
+}
+section.skin-organic[role="region"] > header:first-child button {
+    background: url("../shared/style/headers/images/ui/organic/separator.png") no-repeat scroll right center / auto 4.8rem transparent;
+}
+section[role="region"] > header:first-child > button .icon, section[role="region"] > header:first-child > a .icon {
+    width: 3.2rem;
+}
+section[role="region"] > header:first-child > button .icon:after, section[role="region"] > header:first-child > a .icon:after {
+    width: 3.2rem;
+    background-color: transparent;
+}
+section[role="region"] > header > a .icon.icon-menu, section[role="region"] > header > button .icon.icon-menu {
+    background-position: center center;
 }
 section[role="region"] > header:first-child input[type="text"] {
     position: absolute;
@@ -244,44 +261,6 @@ section[role="region"] > header:first-child menu[type="toolbar"] {
     }
     #note.has-images #note-content {
     }
-    #note #note-resources {
-        list-style-type: none;
-        color: #2c2c2c;
-        font-size: 1.3rem;
-        margin: 0 1.5rem 1.5rem 1.5rem;
-    }
-        #note #note-resources li {
-            position: relative;
-            margin-top: 1.5rem;
-        }
-
-        #note #note-resources .image {
-            height: 6rem;
-            padding-left: 9rem;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-            #note #note-resources .image:before {
-                content: "";
-                background: transparent url('../images/attachment.png') no-repeat;
-                background-size: 0.9rem 2.1rem;
-                position: absolute;
-                top: 0;
-                left: 7rem;
-                width: 0.9rem;
-                height: 2.1rem;
-            }
-            #note #note-resources .image span {
-                position: absolute;
-                top: 0;
-                left: 0;
-                width: 6rem;
-                height: 6rem;
-                background-position: 50% 50%;
-                background-repeat: no-repeat;
-                background-size: cover;
-            }
 
     #note #button-note-save {
         opacity: 0;
@@ -329,7 +308,7 @@ section[role="region"] > header:first-child menu[type="toolbar"] {
     #note-edit-actions li {
         position: relative;
         float: left;
-        width: 20%;
+        width: 33.33%;
         height: 3.6rem;
         line-height: 3.6rem;
         font-size: 0;
@@ -341,15 +320,52 @@ section[role="region"] > header:first-child menu[type="toolbar"] {
         box-sizing: border-box;
     }
     #note-edit-actions li:first-child {
-        background: #fff;
         border-left: none;
     }
     #note-edit-actions li:last-child {
         border-right: none;
     }
 
+.note-resources {
+    list-style-type: none;
+    color: #2c2c2c;
+    font-size: 1.3rem;
+    margin: 0 1.5rem 1.5rem 1.5rem;
+}
+     .note-resources li {
+        position: relative;
+        margin-top: 1.5rem;
+    }
 
-#image-fullscreen {
+     .note-resources .image {
+        height: 6rem;
+        padding-left: 9rem;
+        overflow: hidden;
+          text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+          .note-resources .image:before {
+            content: "";
+            background: transparent url('../images/attachment.png') no-repeat;
+            background-size: 0.9rem 2.1rem;
+            position: absolute;
+            top: 0;
+            left: 7rem;
+            width: 0.9rem;
+            height: 2.1rem;
+        }
+          .note-resources .image span {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 6rem;
+            height: 6rem;
+            background-position: 50% 50%;
+            background-repeat: no-repeat;
+            background-size: cover;
+        }
+
+.image-fullscreen {
     position: absolute;
     top: 0;
     left: 0;
@@ -359,10 +375,10 @@ section[role="region"] > header:first-child menu[type="toolbar"] {
     z-index: 600;
     display: none;
 }
-#image-fullscreen.visible {
+.image-fullscreen.visible {
     display: block;
 }
-    #image-fullscreen .image {
+    .image-fullscreen .image {
         position: absolute;
         top: 0;
         left: 0;
@@ -373,7 +389,7 @@ section[role="region"] > header:first-child menu[type="toolbar"] {
         background-repeat: no-repeat;
         background-size: contain;
     }
-    #image-fullscreen .footer {
+    .image-fullscreen .footer {
         position: absolute;
         bottom: 0;
         left: 0;
@@ -703,14 +719,14 @@ section[role="region"] > header:first-child menu[type="toolbar"] {
     margin: -1.1rem 0 0 -1.2rem;
 }
 
-#button-resource-close:before {
+.button-resource-close:before {
     background: transparent url('../images/close.png') 0 0 no-repeat;
     background-size: 1.7rem 1.7rem;
     width: 1.7rem;
     height: 1.7rem;
     margin: -0.85rem 0 0 -0.9rem;
 }
-#button-resource-delete:before {
+.button-resource-delete:before {
     background: transparent url('../images/delete.png') 0 0 no-repeat;
     background-size: 2.4rem 2.5rem;
     width: 2.4rem;

@@ -41,13 +41,13 @@ var App = new function() {
         // handler of the note card (view and edit actual note)
         NoteView.init({
             "container": $("note"),
-            "elCancel": $("button-note-cancel"),
-            "elSave": $("button-note-save"),
-            "onSave": onNoteSave,
-            "onCancel": onNoteCancel,
+            //"elCancel": $("button-note-cancel"),
+            "elEdit": $("button-note-edit"),
+            "onEdit": onNoteEdit,
+            //"onCancel": onNoteCancel,
             "onRestore": onNoteRestore,
             "onDelete": onNoteDelete,
-            "onResourceClick": onResourceClick,
+            //"onResourceClick": onResourceClick,
             "NoteActionsPhotoLabel": TEXTS.PHOTO_LABEL
         });
         // handler of the note card (view and edit actual note)
@@ -56,7 +56,8 @@ var App = new function() {
             "elCancel": $("note-form-cancel"),
             "elSave": $("note-form-save"),
             "onSave": onNoteSave,
-            "onCancel": onNoteCancel
+            "onCancel": onNoteCancel,
+            //"onResourceClick": onResourceClick
         });
         // handler of the note-info card
         NoteInfoView.init({
@@ -78,10 +79,10 @@ var App = new function() {
         });
         
         // when viewing image in full screen
-        ResourceView.init({
-            "container": $("image-fullscreen"),
-            "onDelete": onResourceDelete
-        });
+        //ResourceView.init({
+            //"container": $("image-fullscreen"),
+            //"onDelete": onResourceDelete
+        //});
         // main notes-search class
         Searcher.init({
             "input": $("searchNotes"),
@@ -271,13 +272,16 @@ var App = new function() {
         }
     };
     
-    this.editNote = function editNote(note, notebook) {
+    this.editNote = function editNote(note, notebook, editFlag) {
+        if (typeof editFlag === "undefined") {
+            editFlag = false;
+        }
         if (typeof note === "string") {
             DB.getNotes({"id": note}, function(notes) {
-                self.showNote(notes[0], notebook);
+                self.editNote(notes[0], notebook, editFlag);
             });
         } else {
-            NoteForm.show(note, notebook);
+            NoteForm.show(note, notebook, editFlag);
             cards.goTo(cards.CARDS.NOTE_FORM, "popup");
         }
     };
@@ -360,15 +364,25 @@ var App = new function() {
         }
     }
     
-    function onNoteSave(noteAffected) {
-        self.showNotes(null);
+    function onNoteEdit(note, notebook) {
+        self.editNote(note, notebook, true);
+    }
+    
+    function onNoteSave(noteAffected, editFlag) {
+        NotebookView.show(null);
+        if (NotebookView.getCurrent()) {
+            elButtonNewNote.style.display = "";
+        }
         NotebooksList.refresh();
+        if (editFlag) {
+            NoteView.show(noteAffected);
+        }
         cards.back();
     }
     
     function onNoteCancel(noteAffected, isChanged) {
         if (isChanged && confirm(TEXTS.NOTE_CANCEL_CHANGES)) {
-            NoteView.save();
+            NoteForm.save();
             return;
         }
         
@@ -380,7 +394,8 @@ var App = new function() {
                 
             });
         } else {
-            cards.goTo(cards.CARDS.MAIN);
+            //cards.goTo(cards.CARDS.MAIN);
+            cards.back();
         }
     }
     
@@ -397,7 +412,6 @@ var App = new function() {
     }
     
     function onNoteDelete(noteAffected) {
-        //console.log("note deleted");
         self.showTrashedNotes();
         NotebooksList.refresh();
     }
@@ -553,13 +567,16 @@ var App = new function() {
         }
     };
     
+    //TODO: add number filter
+    
     var NoteView = new function() {
         var self = this,
             currentNote = null, currentNotebook = null,
             noteContentBeforeEdit = "", noteNameBeforeEdit = "",
             el = null, elContent = null, elResources = null, elTitle = null, elEditTitle = null, elActions = null,
-            elRestore = null, elDelete = null,
-            onSave = null, onCancel = null, onRestore = null, onDelete = null, onTitleChange = null,
+            elRestore = null, elDelete = null, elEdit = null,
+            onEdit = null, onRestore = null, onDelete = null, onTitleChange = null,
+            resourceView = null,
             
             CLASS_EDIT_TITLE = "edit-title",
             CLASS_WHEN_VISIBLE = "visible",
@@ -568,32 +585,22 @@ var App = new function() {
             
         this.init = function(options) {
             el = options.container;
-            elSave = options.elSave;
-            elCancel = options.elCancel;
+            elEdit = options.elEdit;
             
-            onSave = options.onSave;
-            onCancel = options.onCancel;
+            onEdit = options.onEdit;
             onRestore = options.onRestore;
             onDelete = options.onDelete;
             onTitleChange = options.onTitleChange;
-            onResourceClick = options.onResourceClick;
             
             elContent = el.querySelector("#note-content");
-            elResources = el.querySelector("#note-resources");
+            elResources = el.querySelector(".note-resources");
             elTitle = el.querySelector("h1");
             elEditTitle = el.querySelector("input");
             elActions = el.querySelector("#note-edit-actions");
             elRestore = el.querySelector("#button-note-restore");
             elDelete = el.querySelector("#button-note-delete");
             
-            //elTitle.addEventListener("click", self.editTitle);
-            //elEditTitle.addEventListener("blur", self.saveEditTitle);
-            //elEditTitle.addEventListener("keyup", function(e){
-            //   (e.keyCode == 13) && self.saveEditTitle();
-            //});
-            
-            elSave.addEventListener("click", self.save);
-            elCancel.addEventListener("click", self.cancel);
+            elEdit.addEventListener("click", self.edit);
             
             elRestore.addEventListener("click", self.restore);
             elDelete.addEventListener("click", self.del);
@@ -603,6 +610,12 @@ var App = new function() {
                 "onBeforeAction": onBeforeAction,
                 "onAfterAction": onAfterAction,
                 "label": options.NoteActionsPhotoLabel
+            });
+            
+            resourceView = new ResourceView();
+            resourceView.init({
+                "container": el.querySelector(".image-fullscreen"),
+                "onDelete": onResourceDelete
             });
         };
         
@@ -669,23 +682,8 @@ var App = new function() {
             onTitleChange && onTitleChange();
         };
         
-        this.save = function() {
-            var content = elContent.value,
-                name = elEditTitle.value;
-            
-            currentNote.set({
-                "title": name,
-                "text": content
-            }, function onSuccess(){
-                Console.error("Save successfully");
-                onSave && onSave(currentNote);
-            }, function onError(){
-                Console.error("Error saving note!");
-            });
-        };
-        
-        this.cancel = function() {
-            onCancel && onCancel(currentNote, self.changed());
+        this.edit = function() {
+            onEdit && onEdit(currentNote, currentNotebook);
         };
         
         this.restore = function() {
@@ -765,14 +763,18 @@ var App = new function() {
         }
         
         function onResourceClick(resource) {
-            onResourceClick && onResourceClick(resource);
+            resourceView.show(resource);
+        }
+        
+        function onResourceDelete(resource) {
+            resource.remove(function onSuccess() {
+                self.loadResources();
+                resourceView.hide();
+            });
         }
         
         function onBeforeAction(action) {
             switch(action) {
-                case "type":
-                    elContent.focus();
-                    break;
                 case "info":
                     NoteInfoView.load(currentNote);
                     cards.goTo(cards.CARDS.NOTE_INFO);
@@ -784,17 +786,6 @@ var App = new function() {
         
         function onAfterAction(action, output) {
             switch(action) {
-                case "type":
-                    break;
-                case "photo":
-                    output.type = ResourceTypes.IMAGE;
-                    currentNote.newResource(output, function onSuccess(resource) {
-                        self.addResource(resource);
-                        el.classList.add(CLASS_WHEN_HAS_IMAGES);
-                    }, function onError() {
-                        
-                    });
-                    break;
                 case "info":
                     break;
                 case "share":
@@ -809,14 +800,15 @@ var App = new function() {
         }
     };
 
-    // TODO: add more edit actions
+    // TODO: fix height issue
 
     var NoteForm = new function() {
         var self = this,
             currentNote = null, currentNotebook = null,
             noteContentBeforeEdit = "", noteNameBeforeEdit = "",
-            el = null, elContent = null, elSave = null, elCancel = null, elTitle = null, elEditTitle = null,
-            onSave = null, onCancel = null, onTitleChange = null,
+            el = null, elContent = null, elResources = null, elSave = null, elCancel = null, elTitle = null, elEditTitle = null,
+            onSave = null, onCancel = null, onTitleChange = null, editMode = false,
+            resourceView = null,
 
             CLASS_EDIT_TITLE = "edit-title",
             CLASS_WHEN_VISIBLE = "visible",
@@ -830,11 +822,13 @@ var App = new function() {
             onSave = options.onSave;
             onCancel = options.onCancel;
             onTitleChange = options.onTitleChange;
-            onResourceClick = options.onResourceClick;
+            //onResourceClick = options.onResourceClick;
 
             elContent = el.querySelector("textarea");
+            elResources = el.querySelector(".note-resources");
             elTitle = el.querySelector("h1");
             elEditTitle = el.querySelector("input");
+            elAttachment = el.querySelector("#note-form-attachment");
 
             elTitle.addEventListener("click", self.editTitle);
             elEditTitle.addEventListener("blur", self.saveEditTitle);
@@ -848,17 +842,31 @@ var App = new function() {
 
             elSave.addEventListener("click", self.save);
             elCancel.addEventListener("click", self.cancel);
+            elAttachment.addEventListener("click", addAttachment);
+            
+            resourceView = new ResourceView();
+            resourceView.init({
+                "container": el.querySelector(".image-fullscreen"),
+                "onDelete": onResourceDelete
+            });
         };
 
-        this.show = function(note, notebook) {
+        this.show = function(note, notebook, editFlag) {
             var noteContent = note.getContent(),
                 noteName = note.getName();
 
+            editMode = editFlag;
+            if (editMode) {
+                el.classList.add("skin-organic");
+            } else {
+                el.classList.remove("skin-organic");
+            }
             noteContentBeforeEdit = noteContent;
             noteNameBeforeEdit = noteName;
 
             elContent.value = noteContent;
             self.setTitle(noteName);
+            self.loadResources(note);
 
             onContentKeyUp();
             onContentBlur();
@@ -866,6 +874,88 @@ var App = new function() {
             currentNote = note;
             currentNotebook = notebook;
         };
+        
+        this.loadResources = function(note) {
+            !note && (note = currentNote);
+            
+            elResources.innerHTML = '';
+            
+            note.getResources(function onSuccess(resources) {
+                for (var i=0; i<resources.length; i++) {
+                    self.addResource(resources[i]);
+                }
+            }, function onError() {
+                
+            });
+        };
+        
+        this.addResource = function(resource) {
+            elResources.appendChild(getResourceElement(resource));
+        };
+        
+        function getResourceElement(resource) {
+            var el = document.createElement("li"),
+                size = resource.getSize();
+                
+            el.className = resource.getType();
+            el.innerHTML = '<span style="background-image: url(' + resource.getSrc() + ')"></span> ' +
+                            (resource.getName() || "").replace(/</g, '&lt;') + (size? ' (' + readableFilesize(size) + ')' : '');
+                            
+                            
+            el.addEventListener("click", function(){
+                onResourceClick(resource);
+            });
+            
+            return el;
+        }
+        
+        function onResourceClick(resource) {
+            resourceView.show(resource);
+        }
+        
+        function onResourceDelete(resource) {
+            resource.remove(function onSuccess() {
+                self.loadResources();
+                resourceView.hide();
+            });
+        }
+        
+        function addAttachment() {
+            if ("MozActivity" in window) {
+                var act = new MozActivity({
+                    'name': 'pick',
+                    'data': {
+                        'type': 'image/*',
+                        'width': 320,
+                        'height': 480
+                    }
+                });
+                
+                act.onsuccess = function() {
+                    if (!act.result.blob) return;
+                    
+                    // convert the blob to an image (base64)
+                    var reader = new FileReader();
+                    reader.readAsDataURL(act.result.blob);
+                    reader.onload = function onBlobRead(e) {
+                        var output = {
+                            "name": TEXTS.PHOTO_LABEL,
+                            "src": reader.result,
+                            "size": e.total || 0,
+                            "type": ResourceTypes.IMAGE
+                        };
+                        currentNote.newResource(output, function onSuccess(resource) {
+                            self.addResource(resource);
+                            el.classList.add(CLASS_WHEN_HAS_IMAGES);
+                        }, function onError() {
+                            
+                        });
+                    };
+                };
+            } else {
+                alert(TEXTS.IMAGE_NOT_SUPPORTED);
+            }
+        }
 
         this.getCurrentNote = function() { return currentNote; };
         this.getCurrentNotebook = function() { return currentNotebook; };
@@ -900,7 +990,7 @@ var App = new function() {
                 "text": content
             }, function onSuccess(){
                 Console.error("Save successfully");
-                onSave && onSave(currentNote);
+                onSave && onSave(currentNote, editMode);
             }, function onError(){
                 Console.error("Error saving note!");
             });
@@ -1296,7 +1386,7 @@ var App = new function() {
         }
     };
     
-    var ResourceView = new function() {
+    function ResourceView() {
         var self = this,
             el = null, elImage = null, elName = null,
             currentResource = null, onDelete = null;
@@ -1310,8 +1400,8 @@ var App = new function() {
             elImage = el.querySelector(".image");
             elName = el.querySelector(".name");
             
-            el.querySelector("#button-resource-close").addEventListener("click", self.hide);
-            el.querySelector("#button-resource-delete").addEventListener("click", self.del);
+            el.querySelector(".button-resource-close").addEventListener("click", self.hide);
+            el.querySelector(".button-resource-delete").addEventListener("click", self.del);
         };
         
         this.show = function(resource) {
@@ -1342,14 +1432,10 @@ var App = new function() {
             onBeforeAction = options.onBeforeAction;
             onAfterAction = options.onAfterAction;
             
-            elType = el.querySelector(".type");
-            elPhoto = el.querySelector(".photo");
             elInfo = el.querySelector(".info");
             elShare = el.querySelector(".share");
             elDelete = el.querySelector(".delete");
             
-            elType.addEventListener("click", actionType);
-            elPhoto.addEventListener("click", actionPhoto);
             elInfo.addEventListener("click", actionInfo);
             elShare.addEventListener("click", actionShare);
             elDelete.addEventListener("click", actionDelete);
@@ -1409,7 +1495,7 @@ var App = new function() {
                 'name': 'new',
                 'data': {
                     'type': 'mail',
-                    'URI': "mailto:?subject=My+Note&body=" + encodeURIComponent($("note-content").value)
+                    'URI': "mailto:?subject=My+Note&body=" + encodeURIComponent($("note-content").innerHTML)
                 }
             });
             act.onsuccess = function(e){ };

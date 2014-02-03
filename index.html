@@ -59,23 +59,21 @@
 
             <section class="card card-right" id="note" role="region">
                 <header>
-                    <button id="button-note-cancel" class="card-prev"><span class="icon icon-close">close</span></button>
+                    <button id="button-note-cancel" class="card-prev default-button"><span class="icon icon-back">close</span></button>
                     <menu type="toolbar">
-                        <button id="button-note-save" data-l10n-id="done">Done</button>
+                        <button id="button-note-edit"><span class="icon icon-compose">Edit</span></button>
                     </menu>
                     <h1></h1>
                     <input type="text" value="" id="edit-note-name" name="edit-note-name" />
                 </header>
                 <ul id="note-edit-actions">
-                    <li class="sprited type">Type</li>
-                    <li class="sprited photo">Attach Photo</li>
                     <li class="sprited info">Settings</li>
                     <li class="sprited share">Share</li>
                     <li class="sprited delete">Delete</li>
                 </ul>
                 <div class="content">
                     <div id="note-content"></div>
-                    <ul id="note-resources"></ul>
+                    <ul class="note-resources"></ul>
                     <div class="empty sprited">
                         <p data-l10n-id="tap-anywhere-to-start">tap anywhere to start</p>
                     </div>
@@ -84,12 +82,12 @@
                     <b id="button-note-restore" class="sprited bottomleft">Restore</b>
                     <b id="button-note-delete" class="sprited bottomright">Delete</b>
                 </div>
-                <div id="image-fullscreen">
+                <div class="image-fullscreen">
                     <div class="image"></div>
                     <div class="footer">
-                        <b id="button-resource-close" class="sprited bottomleft">Close</b>
+                        <b class="button-resource-close sprited bottomleft">Close</b>
                         <span class="name"></span>
-                        <b id="button-resource-delete" class="sprited bottomright">Delete</b>
+                        <b class="button-resource-delete sprited bottomright">Delete</b>
                     </div>
                 </div>
             </section>
@@ -100,6 +98,7 @@
                 <header>
                     <button id="note-form-cancel" class="card-prev"><span class="icon icon-close">close</span></button>
                     <menu type="toolbar">
+                        <button id="note-form-attachment"><span class="icon icon-attachment">Attachment</span></button>
                         <button id="note-form-save" data-l10n-id="done">Done</button>
                     </menu>
                     <h1></h1>
@@ -119,6 +118,15 @@
                     <div class="empty sprited">
                         <p data-l10n-id="tap-anywhere-to-start">tap anywhere to start</p>
                     </div>
+                    <ul class="note-resources"></ul>
+                </div>
+                <div class="image-fullscreen">
+                    <div class="image"></div>
+                    <div class="footer">
+                        <b class="button-resource-close sprited bottomleft">Close</b>
+                        <span class="name"></span>
+                        <b class="button-resource-delete sprited bottomright">Delete</b>
+                    </div>
                 </div>
             </section>
 
@@ -126,7 +134,7 @@
 
             <section class="card card-right" id="note-info" role="region">
                 <header>
-                    <button class="card-prev"><span class="icon icon-back">menu</span></button>
+                    <button class="card-prev default-button"><span class="icon icon-back">menu</span></button>
                     <h1 data-l10n-id="note-info">Note Info</h1>
                 </header>
                 <div class="content">

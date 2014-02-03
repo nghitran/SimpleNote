@@ -85,9 +85,11 @@ var Cards = function(_options) {
     function addDefaultButtons(el) {
         var buttons = el.getElementsByClassName("card-prev");
         for (var i=0; i<buttons.length; i++) {
-            buttons[i].addEventListener("click", function(){
-                _this.back();
-            });
+            if (buttons[i].classList.contains("default-button")) {
+                buttons[i].addEventListener("click", function(){
+                    _this.back();
+                });
+            }
         }
     }
 
