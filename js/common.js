@@ -572,10 +572,10 @@ var App = new function() {
     var NoteView = new function() {
         var self = this,
             currentNote = null, currentNotebook = null,
-            noteContentBeforeEdit = "", noteNameBeforeEdit = "",
-            el = null, elContent = null, elResources = null, elTitle = null, elEditTitle = null, elActions = null,
+            noteContent = "", noteName = "",
+            el = null, elContent = null, elResources = null, elTitle = null, elActions = null,
             elRestore = null, elDelete = null, elEdit = null,
-            onEdit = null, onRestore = null, onDelete = null, onTitleChange = null,
+            onEdit = null, onRestore = null, onDelete = null,
             resourceView = null,
             
             CLASS_EDIT_TITLE = "edit-title",
@@ -590,12 +590,10 @@ var App = new function() {
             onEdit = options.onEdit;
             onRestore = options.onRestore;
             onDelete = options.onDelete;
-            onTitleChange = options.onTitleChange;
             
             elContent = el.querySelector("#note-content");
             elResources = el.querySelector(".note-resources");
             elTitle = el.querySelector("h1");
-            elEditTitle = el.querySelector("input");
             elActions = el.querySelector("#note-edit-actions");
             elRestore = el.querySelector("#button-note-restore");
             elDelete = el.querySelector("#button-note-delete");
@@ -620,13 +618,13 @@ var App = new function() {
         };
         
         this.show = function(note, notebook) {
-            var noteContent = note.getContent(),
-                noteName = note.getName();
-
-            noteContentBeforeEdit = noteContent;
-            noteNameBeforeEdit = noteName;
+            noteContent = note.getContent();
+            noteName = note.getName();
             
-            elContent.innerHTML = noteContent;
+            var text = Template.escape(noteContent);
+            text = LinkHelper.searchAndLinkClickableData(text);
+            
+            elContent.innerHTML = text;
             self.setTitle(noteName);
             self.loadResources(note);
             
@@ -662,24 +660,7 @@ var App = new function() {
         this.getCurrentNotebook = function() { return currentNotebook; };
         
         this.setTitle = function(title) {
-            html(elTitle, title || getNoteNameFromContent(elContent.innerHTML) || TEXTS.NEW_NOTE);
-            elEditTitle.value = title || "";
-        };
-        
-        this.editTitle = function() {
-            if (!currentNote || currentNote.isTrashed()) return;
-            
-            el.classList.add(CLASS_EDIT_TITLE);
-            elEditTitle.focus();
-        };
-        
-        this.saveEditTitle = function() {
-            el.classList.remove(CLASS_EDIT_TITLE);
-            elEditTitle.blur();
-            
-            self.setTitle(elEditTitle.value);
-            
-            onTitleChange && onTitleChange();
+            html(elTitle, title || getNoteNameFromContent(noteContent) || TEXTS.NEW_NOTE);
         };
         
         this.edit = function() {
@@ -719,10 +700,6 @@ var App = new function() {
                     self.scrollToElement(numberOfTries-1);
                 }, 80);
             }
-        };
-        
-        this.changed = function() {
-            return noteContentBeforeEdit !== elContent.innerHTML || noteNameBeforeEdit !== elEditTitle.value;
         };
         
         function setHeightAccordingToScreen() {
