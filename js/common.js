@@ -41,13 +41,10 @@ var App = new function() {
         // handler of the note card (view and edit actual note)
         NoteView.init({
             "container": $("note"),
-            //"elCancel": $("button-note-cancel"),
             "elEdit": $("button-note-edit"),
             "onEdit": onNoteEdit,
-            //"onCancel": onNoteCancel,
             "onRestore": onNoteRestore,
             "onDelete": onNoteDelete,
-            //"onResourceClick": onResourceClick,
             "NoteActionsPhotoLabel": TEXTS.PHOTO_LABEL
         });
         // handler of the note card (view and edit actual note)
@@ -57,7 +54,6 @@ var App = new function() {
             "elSave": $("note-form-save"),
             "onSave": onNoteSave,
             "onCancel": onNoteCancel,
-            //"onResourceClick": onResourceClick
         });
         // handler of the note-info card
         NoteInfoView.init({
@@ -78,12 +74,6 @@ var App = new function() {
             "container": $("container")
         });
         
-        // when viewing image in full screen
-        //ResourceView.init({
-            //"container": $("image-fullscreen"),
-            //"onDelete": onResourceDelete
-        //});
-        // main notes-search class
         Searcher.init({
             "input": $("searchNotes"),
             "fields": SEARCH_FIELDS,
@@ -120,7 +110,7 @@ var App = new function() {
             });
         }, false);
 
-        document.body.classList.remove(CLASS_LOADING);
+        document.body.classList.remove(CLASS_LOADING);        
     };
     
     function setupCache() {
@@ -288,8 +278,6 @@ var App = new function() {
     
     this.showNotes = function(notebook) {
         NotebookView.show(notebook);
-        /*if(!refresh)
-            cards.goTo(cards.CARDS.MAIN);*/
         cards.home();
         
         if (NotebookView.getCurrent()) {
@@ -324,6 +312,82 @@ var App = new function() {
         NotebookView.setTitle(TEXTS.NOTEBOOK_TRASH);
         
         cards.home();
+    };
+    
+    //Show option menu
+    
+    this.prompt = function (opt) {
+        function complete() {};
+
+        var number = opt.number || '';
+        var email = opt.email || '';
+        var header = opt.header || number || email || '';
+        var items = [];
+        var params, props;
+
+        // Create a params object.
+        // - complete: callback to be invoked when a
+        // button in the menu is pressed
+        // - header: string or node to display in the
+        // in the header of the option menu
+        // - items: array of options to display in menu
+        //
+        params = {
+            classes: ['contact-prompt'],
+            complete: complete,
+            header: header,
+            items: null
+        };
+
+        // All non-email activations will see a "Call" option
+        if (email) {
+            items.push({
+                l10nId: 'sendEmail',
+                method: function oEmail(param) {
+                  ActivityPicker.email(param);
+                },
+                params: [email]
+            });
+        } else {
+          items.push({
+            l10nId: 'call',
+            method: function oCall(param) {
+              ActivityPicker.dial(param);
+            },
+            params: [number]
+          });
+        }
+
+        params.items = items;
+
+        props = [
+            number ? {tel: number} : {email: email}
+        ];
+        
+        params.items.push({
+                l10nId: 'createNewContact',
+                method: function oCreate(param) {
+                    ActivityPicker.createNewContact(param);
+                },
+                params: props
+            },
+            {
+                l10nId: 'addToExistingContact',
+                method: function oAdd(param) {
+                    ActivityPicker.addToExistingContact(param);
+                },
+                params: props
+            }
+        );
+
+        // All activations will see a "Cancel" option
+        params.items.push({
+          l10nId: 'cancel',
+          incomplete: true
+        });
+
+        var options = new OptionMenu(params);
+        options.show();
     };
     
     function onCardMove() {
@@ -394,7 +458,6 @@ var App = new function() {
                 
             });
         } else {
-            //cards.goTo(cards.CARDS.MAIN);
             cards.back();
         }
     }
@@ -567,7 +630,7 @@ var App = new function() {
         }
     };
     
-    //TODO: add number filter
+    //TODO: code cleanup
     
     var NoteView = new function() {
         var self = this,
@@ -602,6 +665,11 @@ var App = new function() {
             
             elRestore.addEventListener("click", self.restore);
             elDelete.addEventListener("click", self.del);
+            
+            //action menu
+            elContent.addEventListener ('click', function (event) {
+                LinkActionHandler.onClick(event);
+            });
             
             NoteActions.init({
                 "el": elActions,
