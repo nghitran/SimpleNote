@@ -102,6 +102,20 @@ section[role="region"] > header:first-child menu[type="toolbar"] {
     z-index: 100;
 }
 
+/*Hide drawer when click on main section*/
+section[role="region"]#main > #overlay-notebook-menu-hide {
+    position: absolute;
+    height: 100%;
+    width: 20%;
+    top: 0;
+    left: 0;
+    visibility: hidden;
+}
+section[role="region"]#main:target > #overlay-notebook-menu-hide {
+    visibility: visible;
+    z-index: 100;
+}
+
 /* Action Menu */
 [data-position="back"] {
     position: absolute;

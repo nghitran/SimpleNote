@@ -1090,7 +1090,7 @@ var App = new function() {
                 el.classList.add(EMPTY_CONTENT_CLASS);
             }
 
-            resetHeight();
+            //resetHeight();
         }
 
         function setHeightAccordingToScreen() {
